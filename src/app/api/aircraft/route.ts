@@ -77,21 +77,3 @@ export async function GET() {
     );
   }
 }
-
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  try {
-    const { id } = params;
-    await deleteDoc(doc(db, "aircrafts", id));
-
-    return NextResponse.json(
-      { success: true, message: `Aircraft ${id} deleted` },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error("Error deleting aircraft:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to delete aircraft", error: error.message },
-      { status: 500 }
-    );
-  }
-}

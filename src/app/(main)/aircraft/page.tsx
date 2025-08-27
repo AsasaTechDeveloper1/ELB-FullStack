@@ -10,10 +10,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// import HeroAsside from '../(home)/_components/overview-cards/heroasside';
 
 interface Aircraft {
-  id: number;
+  id: string;
   name: string;
   type: string;
   registrationNumber: string;
@@ -25,73 +24,40 @@ interface Aircraft {
 export default function AircraftListPage() {
   const [aircraftList, setAircraftList] = useState<Aircraft[]>([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    async function fetchAircraft() {
-      try {
-        const res = await fetch('/api/aircraft');
+  async function fetchAircraft() {
+    try {
+      const res = await fetch('/api/aircraft');
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+      const data = await res.json();
 
-        const data = await res.json();
-
-        if (Array.isArray(data) && data.length > 0) {
-          setAircraftList(data);
-        } else {
-          // Fallback dummy data
-          setAircraftList([
-            {
-              id: 1,
-              name: "Falcon 9",
-              type: "Jet",
-              registrationNumber: "AP-FX1",
-              manufacturer: "SpaceX",
-              year: 2020,
-              dateAdded: "2025-06-01",
-            },
-            {
-              id: 2,
-              name: "Cessna 172",
-              type: "Propeller",
-              registrationNumber: "AP-CN2",
-              manufacturer: "Cessna",
-              year: 2018,
-              dateAdded: "2025-06-10",
-            }
-          ]);
-        }
-      } catch (error) {
-        console.error('Failed to fetch aircraft:', error);
-
-        // Fallback dummy data on error
-        setAircraftList([
-          {
-            id: 1,
-            name: "Falcon 9",
-            type: "Jet",
-            registrationNumber: "AP-FX1",
-            manufacturer: "SpaceX",
-            year: 2020,
-            dateAdded: "2025-06-01",
-          },
-          {
-            id: 2,
-            name: "Cessna 172",
-            type: "Propeller",
-            registrationNumber: "AP-CN2",
-            manufacturer: "Cessna",
-            year: 2018,
-            dateAdded: "2025-06-10",
-          }
-        ]);
-      } finally {
-        setLoading(false);
+      if (Array.isArray(data) && data.length > 0) {
+        setAircraftList(
+          data.map((item: any) => ({
+            id: item.id,
+            name: item.aircraftName,
+            type: item.aircraftType,
+            registrationNumber: item.registrationNumber,
+            manufacturer: item.manufacturer,
+            year: item.year,
+            dateAdded: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "",
+          }))
+        );
+      } else {
+        setAircraftList([]);
       }
+    } catch (error) {
+      console.error('Failed to fetch aircraft:', error);
+      setAircraftList([]);
+    } finally {
+      setLoading(false);
     }
+  }
 
+  useEffect(() => {
     fetchAircraft();
   }, []);
 
@@ -99,9 +65,23 @@ export default function AircraftListPage() {
     router.push('/aircraft/create');
   }
 
+  async function handleDelete(id: string) {
+    if (!confirm("Are you sure you want to delete this aircraft?")) return;
+
+    const res = await fetch(`/api/aircraft/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setMessage("✅ Aircraft deleted successfully");
+      fetchAircraft(); // refresh list from server
+    } else {
+      setMessage("❌ Failed to delete aircraft");
+    }
+
+    // Hide message after 3s
+    setTimeout(() => setMessage(null), 3000);
+  }
+
   return (
     <>
-      {/* <HeroAsside /> */}
       <div className="bg-white p-6 shadow rounded-xl">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800">🛫 Registered Aircraft</h2>
@@ -110,8 +90,14 @@ export default function AircraftListPage() {
             className="px-4 py-2 bg-[#004051] hover:bg-[#006172] text-white font-medium rounded-md transition"
           >
             + Add New Aircraft
-          </button>
+          </button> 
         </div>
+
+        {message && (
+          <div className="mb-4 text-center text-sm font-medium text-green-600 bg-green-100 px-4 py-2 rounded-md">
+            {message}
+          </div>
+        )}
 
         {loading ? (
           <p className="text-gray-600">Loading aircraft...</p>
@@ -127,6 +113,7 @@ export default function AircraftListPage() {
                   <TableHead className="text-gray-700">Manufacturer</TableHead>
                   <TableHead className="text-gray-700">Year</TableHead>
                   <TableHead className="text-gray-700">Date Added</TableHead>
+                  <TableHead className="text-gray-700 text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -140,11 +127,25 @@ export default function AircraftListPage() {
                       <TableCell>{aircraft.manufacturer}</TableCell>
                       <TableCell>{aircraft.year}</TableCell>
                       <TableCell>{aircraft.dateAdded}</TableCell>
+                      <TableCell className="text-center space-x-2">
+                        <button
+                          onClick={() => router.push(`/aircraft/${aircraft.id}/edit`)}
+                          className="px-3 py-1 bg-[#004051] hover:bg-[#006172] text-white rounded hover:bg-blue-600"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(aircraft.id)}
+                          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                        >
+                          Delete
+                        </button>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-gray-500 py-4">
+                    <TableCell colSpan={8} className="text-center text-gray-500 py-4">
                       No aircraft found.
                     </TableCell>
                   </TableRow>

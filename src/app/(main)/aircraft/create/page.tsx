@@ -13,7 +13,7 @@ export default function AddAircraftForm() {
   const [year, setYear] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [description, setDescription] = useState('');
-
+ 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setImage(e.target.files[0]);
@@ -22,18 +22,42 @@ export default function AddAircraftForm() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({
-      aircraftName,
-      aircraftType,
-      registrationNumber,
-      manufacturer,
-      year,
-      image,
-      description,
-    });
+
+    const formData = new FormData();
+    formData.append("aircraftName", aircraftName);
+    formData.append("aircraftType", aircraftType);
+    formData.append("registrationNumber", registrationNumber);
+    formData.append("manufacturer", manufacturer);
+    formData.append("year", year);
+    formData.append("description", description);
+
+    // Append image file if selected
+    if (image) {
+      formData.append("image", image);
+    }
+
+    try {
+      const res = await fetch("/api/aircraft", {
+        method: "POST",
+        body: formData, // ✅ send FormData, not JSON
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert("✅ Aircraft saved!");
+        router.push("/aircraft"); // redirect
+      } else {
+        alert("❌ Failed to save");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("❌ Something went wrong");
+    }
   };
+
 
   return (
     <div className="max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">

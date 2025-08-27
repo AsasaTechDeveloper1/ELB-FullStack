@@ -58,7 +58,26 @@ export default function DeviceRegistrationForm() {
             required
           />
         </div>
-
+        <div>
+          <label htmlFor="deviceType" className="text-[15px] font-semibold text-gray-700 mb-1 block">
+            AirCraft
+          </label>
+          <select
+            id="deviceType"
+            value={deviceType}
+            onChange={(e) => setDeviceType(e.target.value)}
+            className="w-full bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#004051]"
+            required
+          >
+            <option value="">Select AirCraft</option>
+            <option value="laptop">Laptop</option>
+            <option value="desktop">Desktop</option>
+            <option value="mobile">Mobile</option>
+            <option value="tablet">Tablet</option>
+            <option value="iot">IoT Device</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
         <div>
           <label htmlFor="macAddress" className="text-[15px] font-semibold text-gray-700 mb-1 block">
             MAC Address
@@ -137,7 +156,7 @@ export default function DeviceRegistrationForm() {
             <option value="iot">IoT Device</option>
             <option value="other">Other</option>
           </select>
-        </div>
+        </div>  
 
         <div className="md:col-span-2">
           <label htmlFor="notes" className="text-[15px] font-semibold text-gray-700 mb-1 block">
@@ -153,7 +172,7 @@ export default function DeviceRegistrationForm() {
           />
         </div>
       </form>
-
+      
       {/* Footer */}
       <div className="bg-gray-100 px-6 py-3 flex justify-end">
         <button
